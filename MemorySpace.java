@@ -52,10 +52,13 @@ public class MemorySpace {
 	 */
 	public int malloc(int length) {		
 		ListIterator  currentFree = freeList.iterator();
-		while (currentFree.hasNext() && currentFree.current.block.length < length) {
+		while (currentFree.hasNext()) {
+			if (currentFree.current.block.length >= length) {
+				break;
+			}
 			currentFree.next();
 			if (currentFree.current == null) {
-			return -1;
+				return -1;
 			}
 		}
 		MemoryBlock newMemory = new MemoryBlock(currentFree.current.block.baseAddress, length);
