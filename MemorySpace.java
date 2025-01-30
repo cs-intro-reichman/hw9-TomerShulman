@@ -25,16 +25,9 @@ public class MemorySpace {
 	    // zero, and its length is the given memory size.
 		freeList = new LinkedList();
 		freeList.addLast(new MemoryBlock(0, maxSize));
-	}
+		}
 
-	/**
-	 * Allocates a memory block of a requested length (in words). Returns the
-	 * base address of the allocated block, or -1 if unable to allocate.
-	 * 
-	 * This implementation scans the freeList, looking for the first free memory block 
-	 * whose length equals at least the given length. If such a block is found, the method 
-	 * performs the following operations:
-	 * 
+	/** 
 	 * (1) A new memory block is constructed. The base address of the new block is set to
 	 * the base address of the found free block. The length of the new block is set to the value 
 	 * of the method's length parameter.
@@ -58,8 +51,23 @@ public class MemorySpace {
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
 	public int malloc(int length) {		
-		//// Replace the following statement with your code
-		return -1;
+		ListIterator  currentFree = freeList.iterator();
+		while (currentFree.hasNext() && currentFree.current.block.length < length) {
+			currentFree.next();
+			if (currentFree.current == null) {
+			return -1;
+			}
+		}
+		MemoryBlock newMemory = new MemoryBlock(currentFree.current.block.baseAddress, length);
+		this.allocatedList.addLast(newMemory);
+		if (length == currentFree.current.block.length) {
+			this.freeList.remove(currentFree.current);
+		} else {
+			currentFree.current.block.baseAddress += length;
+			currentFree.current.block.length -= length;
+		}
+		System.out.println(this.allocatedList.toString());
+		return newMemory.baseAddress;
 	}
 
 	/**
@@ -71,7 +79,22 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		//// Write your code here
+		Node current = allocatedList.getFirst();
+		if(allocatedList.getSize() == 0)
+		{
+			throw new IllegalArgumentException("index must be between 0 and size");
+		}
+		else{
+			while(current.block.baseAddress != address && current != allocatedList.getLast())
+			{
+			current = current.next;
+			}
+			if(current.block.baseAddress == address)
+			{
+			allocatedList.remove(current.block);
+			freeList.addLast(current.block);
+			}
+		}
 	}
 	
 	/**
@@ -88,6 +111,23 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		//// Write your code here
+		 if (freeList.getSize() <= 1) {
+        	return;
+    	}
+		for (int i = 0; i < freeList.getSize(); i++) {
+			MemoryBlock FreeMemory = freeList.getBlock(i);
+			int sum = FreeMemory.baseAddress + FreeMemory.length;
+			Node currentFree = freeList.getFirst(); 
+			while (currentFree != null) {
+				MemoryBlock nextBlock = currentFree.block;
+				if (nextBlock.baseAddress == sum) {
+					FreeMemory.length += nextBlock.length;
+                	freeList.remove(currentFree.block); 
+                	i = -1; 
+                	break;
+				}
+				currentFree = currentFree.next;
+			}
+		}
 	}
 }
